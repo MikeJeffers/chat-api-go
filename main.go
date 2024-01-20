@@ -11,10 +11,11 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func getEnv(key string, defaultValue string) string {
-	value := os.Getenv("POSTGRES_USER")
+	value := os.Getenv(key)
 	if len(value) < 1 {
 		return defaultValue
 	}
@@ -107,6 +108,14 @@ func storeAndRespond(user UserRow, redisClient *redis.Client, c *gin.Context) (R
 	return data, nil
 }
 
+func hashPassword(password string) ([]byte, error) {
+	return bcrypt.GenerateFromPassword([]byte(password), 10)
+}
+
+func checkPassword(password string, hashedPass string) bool {
+	return nil == bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(password))
+}
+
 func setupRouter() *gin.Engine {
 	r := gin.Default()
 	db := dbConnect()
@@ -124,6 +133,9 @@ func setupRouter() *gin.Engine {
 				c.JSON(400, gin.H{"message": "no such user"})
 				return
 			}
+			if !checkPassword(requestBody.Password, users[0].Password) {
+				c.JSON(400, gin.H{"message": "bad password :P"})
+			}
 			data, err := storeAndRespond(users[0], red, c)
 			if err != nil {
 				c.JSON(500, gin.H{"message": "Failed to generate token"})
@@ -139,8 +151,13 @@ func setupRouter() *gin.Engine {
 		if err := c.BindJSON(&requestBody); err != nil {
 			c.JSON(400, gin.H{"message": "bad data"})
 		} else {
+			hashed, err := hashPassword(requestBody.Password)
+			if err != nil {
+				c.JSON(400, gin.H{"message": "password failed. to hash whats that about?"})
+				return
+			}
 			users := []UserRow{}
-			db.Select(&users, "INSERT INTO Users (username, password) VALUES ($1, $2) RETURNING id, username, password", requestBody.Username, requestBody.Password)
+			db.Select(&users, "INSERT INTO Users (username, password) VALUES ($1, $2) RETURNING id, username, password", requestBody.Username, string(hashed))
 			if len(users) < 1 {
 				c.JSON(400, gin.H{"message": "unable to add user"})
 				return
