@@ -38,8 +38,6 @@ var (
 
 func dbConnect() *sqlx.DB {
 	connStr := fmt.Sprintf("postgresql://%v:%v@%v:%v/%v?sslmode=disable", DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME)
-	fmt.Println(connStr)
-	// Connect to database
 	db, err := sqlx.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)
@@ -125,20 +123,20 @@ func setupRouter() *gin.Engine {
 		var requestBody UserAuthBody
 
 		if err := c.BindJSON(&requestBody); err != nil {
-			c.JSON(400, gin.H{"message": "bad data"})
+			return
 		} else {
 			users := []UserRow{}
 			db.Select(&users, "SELECT id, username, password FROM users WHERE username = $1 LIMIT 1", requestBody.Username)
 			if len(users) < 1 {
-				c.JSON(400, gin.H{"message": "no such user"})
+				c.JSON(400, gin.H{"message": "No such user"})
 				return
 			}
 			if !checkPassword(requestBody.Password, users[0].Password) {
-				c.JSON(400, gin.H{"message": "bad password :P"})
+				c.JSON(400, gin.H{"message": "No such user"})
 			}
 			data, err := storeAndRespond(users[0], red, c)
 			if err != nil {
-				c.JSON(500, gin.H{"message": "Failed to generate token"})
+				c.JSON(500, gin.H{"message": "Server Error"})
 				return
 			}
 			c.JSON(200, data)
@@ -149,11 +147,12 @@ func setupRouter() *gin.Engine {
 		var requestBody UserAuthBody
 
 		if err := c.BindJSON(&requestBody); err != nil {
-			c.JSON(400, gin.H{"message": "bad data"})
+			return
 		} else {
 			hashed, err := hashPassword(requestBody.Password)
 			if err != nil {
-				c.JSON(400, gin.H{"message": "password failed. to hash whats that about?"})
+				c.JSON(500, gin.H{"message": "Server Error"})
+				log.Println(err.Error())
 				return
 			}
 			users := []UserRow{}
@@ -164,7 +163,7 @@ func setupRouter() *gin.Engine {
 			}
 			data, err := storeAndRespond(users[0], red, c)
 			if err != nil {
-				c.JSON(500, gin.H{"message": "Failed to generate token"})
+				c.JSON(500, gin.H{"message": "Server Error"})
 				return
 			}
 			c.JSON(200, data)
