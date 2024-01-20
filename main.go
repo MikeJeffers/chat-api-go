@@ -13,17 +13,26 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+func getEnv(key string, defaultValue string) string {
+	value := os.Getenv("POSTGRES_USER")
+	if len(value) < 1 {
+		return defaultValue
+	}
+	return value
+}
+
 var (
-	DB_USER     = os.Getenv("POSTGRES_USER")
-	DB_PASSWORD = os.Getenv("POSTGRES_PASSWORD")
-	DB_NAME     = os.Getenv("POSTGRES_DB")
-	DB_HOST     = os.Getenv("POSTGRES_HOST")
-	DB_PORT     = os.Getenv("POSTGRES_PORT")
+	DB_USER     = getEnv("POSTGRES_USER", "user")
+	DB_PASSWORD = getEnv("POSTGRES_PASSWORD", "password")
+	DB_NAME     = getEnv("POSTGRES_DB", "test")
+	DB_HOST     = getEnv("POSTGRES_HOST", "localhost")
+	DB_PORT     = getEnv("POSTGRES_PORT", "5432")
 
-	REDIS_PORT     = os.Getenv("REDIS_PORT")
-	REDIS_PASSWORD = os.Getenv("REDIS_PASSWORD")
+	REDIS_HOST     = getEnv("REDIS_HOST", "localhost")
+	REDIS_PORT     = getEnv("REDIS_PORT", "6379")
+	REDIS_PASSWORD = getEnv("REDIS_PASSWORD", "")
 
-	SECRET_JWT = os.Getenv("SECRET_JWT")
+	SECRET_JWT = getEnv("SECRET_JWT", "idk")
 )
 
 func dbConnect() *sqlx.DB {
@@ -39,7 +48,7 @@ func dbConnect() *sqlx.DB {
 
 func redisClient() *redis.Client {
 	return redis.NewClient(&redis.Options{
-		Addr:     fmt.Sprintf("localhost:%v", REDIS_PORT),
+		Addr:     fmt.Sprintf("%v:%v", REDIS_HOST, REDIS_PORT),
 		Password: REDIS_PASSWORD,
 		DB:       0,
 		Protocol: 3,
