@@ -13,12 +13,6 @@ type UserRequestBody struct {
 	Password string `json:"password"`
 }
 
-type UserRow struct {
-	Id       int64  `json:"id" db:"id"`
-	Username string `json:"username" db:"username"`
-	Password string `json:"password" db:"password"`
-}
-
 type UserTokenData struct {
 	Id       int64  `json:"id" db:"id"`
 	Username string `json:"username" db:"username"`
@@ -53,17 +47,15 @@ func setupRouter() *gin.Engine {
 		if err := c.BindJSON(&requestBody); err != nil {
 			return
 		} else {
-			users := []UserRow{}
-			db.Select(&users, "SELECT id, username, password FROM users WHERE username = $1 LIMIT 1", requestBody.Username)
-			if len(users) < 1 {
+			user, err := getUserRow(requestBody.Username, db, c)
+			if err != nil {
+				c.JSON(400, err.Error())
+				return
+			} else if !checkPassword(requestBody.Password, user.Password) {
 				c.JSON(400, gin.H{"message": "No such user"})
 				return
 			}
-			if !checkPassword(requestBody.Password, users[0].Password) {
-				c.JSON(400, gin.H{"message": "No such user"})
-				return
-			}
-			data, err := storeAndRespond(users[0], red, c)
+			data, err := storeAndRespond(user, red, c)
 			if err != nil {
 				c.JSON(500, gin.H{"message": "Server Error"})
 				return
@@ -84,13 +76,12 @@ func setupRouter() *gin.Engine {
 				log.Println(err.Error())
 				return
 			}
-			users := []UserRow{}
-			db.Select(&users, "INSERT INTO Users (username, password) VALUES ($1, $2) RETURNING id, username, password", requestBody.Username, string(hashed))
-			if len(users) < 1 {
-				c.JSON(400, gin.H{"message": "unable to add user"})
+			user, err := addUser(requestBody.Username, string(hashed), db, c)
+			if err != nil {
+				c.JSON(400, err.Error())
 				return
 			}
-			data, err := storeAndRespond(users[0], red, c)
+			data, err := storeAndRespond(user, red, c)
 			if err != nil {
 				c.JSON(500, gin.H{"message": "Server Error"})
 				return
