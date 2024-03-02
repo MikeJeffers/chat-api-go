@@ -1,4 +1,4 @@
-package main
+package chat
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func redisClient() *redis.Client {
+func RedisClient() *redis.Client {
 	return redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%v:%v", REDIS_HOST, REDIS_PORT),
 		Password: REDIS_PASSWORD,
@@ -17,6 +17,6 @@ func redisClient() *redis.Client {
 	})
 }
 
-func storeToken(token string, userId int64, redisClient *redis.Client, c *gin.Context) *redis.StatusCmd {
+func StoreToken(token string, userId int64, redisClient *redis.Client, c *gin.Context) *redis.StatusCmd {
 	return redisClient.SetEx(c, fmt.Sprintf("jwt:%v", userId), token, time.Hour*1)
 }

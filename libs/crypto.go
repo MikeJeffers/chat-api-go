@@ -1,11 +1,11 @@
-package main
+package chat
 
 import "golang.org/x/crypto/bcrypt"
 
-func hashPassword(password string) ([]byte, error) {
+func HashPassword(password string) ([]byte, error) {
 	return bcrypt.GenerateFromPassword([]byte(password), 10)
 }
 
-func checkPassword(password string, hashedPass string) bool {
+func CheckPassword(password string, hashedPass string) bool {
 	return nil == bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(password))
 }
