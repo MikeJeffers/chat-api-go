@@ -1,8 +1,9 @@
 package chat
 
 import (
-	libs "chat/libs"
 	"log"
+
+	libs "github.com/mikejeffers/chat-api-go/libs"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"

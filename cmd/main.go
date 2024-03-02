@@ -1,7 +1,7 @@
 package main
 
 import (
-	router "chat/routes"
+	router "github.com/mikejeffers/chat-api-go/routes"
 )
 
 func main() {

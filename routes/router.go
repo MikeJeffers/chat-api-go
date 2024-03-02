@@ -1,7 +1,7 @@
 package chat
 
 import (
-	libs "chat/libs"
+	libs "github.com/mikejeffers/chat-api-go/libs"
 
 	"github.com/gin-gonic/gin"
 )

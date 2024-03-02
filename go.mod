@@ -1,4 +1,4 @@
-module chat
+module github.com/mikejeffers/chat-api-go
 
 go 1.22
 
