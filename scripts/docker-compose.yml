@@ -14,7 +14,7 @@ services:
       - ./psql:/docker-entrypoint-initdb.d
 
   redis:
-    image: 'redis:latest'
+    image: redis:latest
     environment:
       - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL,CONFIG
       - REDIS_PASSWORD="${REDIS_PASSWORD}"
