@@ -6,7 +6,5 @@
 # the parent dependencies and services to be running with the source env vars.
 ######################################
 
-cd ..
-export $(grep -v '^#' .env | xargs -d '\n')
-cd chat-api-go
+export $(grep -v '^#' ../.env | xargs -d '\n')
 go run cmd/main.go
