@@ -1,11 +1,11 @@
 package chat
 
-import "github.com/golang-jwt/jwt"
+import "github.com/golang-jwt/jwt/v5"
 
 type CustomClaims struct {
 	Id       int64  `json:"id"`
 	Username string `json:"username"`
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
 func SignToken(user UserRow) (string, error) {

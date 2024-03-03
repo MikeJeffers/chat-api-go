@@ -13,11 +13,12 @@ func Login(db *sqlx.DB, red *redis.Client) gin.HandlerFunc {
 		var requestBody libs.UserRequestBody
 
 		if err := c.BindJSON(&requestBody); err != nil {
+			c.JSON(400, gin.H{"message": "Invalid request body"})
 			return
 		} else {
 			user, err := libs.GetUserRow(requestBody.Username, db, c)
 			if err != nil {
-				c.JSON(400, err.Error())
+				c.JSON(400, gin.H{"message": "No such user"})
 				return
 			} else if !libs.CheckPassword(requestBody.Password, user.Password) {
 				c.JSON(400, gin.H{"message": "No such user"})

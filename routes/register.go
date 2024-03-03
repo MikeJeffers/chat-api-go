@@ -15,6 +15,7 @@ func Register(db *sqlx.DB, red *redis.Client) gin.HandlerFunc {
 		var requestBody libs.UserRequestBody
 
 		if err := c.BindJSON(&requestBody); err != nil {
+			c.JSON(400, gin.H{"message": "Invalid request body"})
 			return
 		} else {
 			hashed, err := libs.HashPassword(requestBody.Password)
